@@ -33,19 +33,24 @@ VIDEO_PAIRS = {
 # Custom CSS
 st.markdown("""
 <style>
+    /* Video container centering */
+    [data-testid="stVideo"],
     .stVideo {
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
     }
 
+    /* Video element styling */
+    [data-testid="stVideo"] video,
     .stVideo video {
         object-fit: contain !important;
-        max-height: 540px;
-        width: 90%;
-        display: block;
+        max-height: 540px !important;
+        width: 90% !important;
+        display: block !important;
+        margin: 0 auto !important;
     }
 
     .video-label {

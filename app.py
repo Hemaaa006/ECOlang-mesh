@@ -6,8 +6,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# Video pairs configuration - using local file paths
-# Streamlit Cloud will serve these files directly from the repo
+# Video pairs configuration
 VIDEO_PAIRS = {
     "Video 1 - Ch07 Speakerview 016": {
         "original": "videos/original_1.mp4",
@@ -31,41 +30,38 @@ VIDEO_PAIRS = {
     }
 }
 
-# Custom CSS for styling
+# Custom CSS
 st.markdown("""
 <style>
-    /* Video container styling */
     .stVideo {
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
 
-    /* Header styling */
-    .video-header {
+    .video-label {
         background: #262626;
         padding: 12px 16px;
         font-weight: 600;
-        font-size: 18px;
+        font-size: 16px;
         border-radius: 8px;
         margin-bottom: 10px;
         text-align: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
-    /* Sync info box */
-    .sync-info {
+    .sync-note {
         background: #1a1a1a;
-        padding: 15px;
+        padding: 12px;
         border-radius: 8px;
         text-align: center;
         margin: 20px 0;
         border: 1px solid #3a3a3a;
+        color: #888;
     }
 
-    .sync-indicator {
+    .pulse-dot {
         display: inline-block;
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         background: #4CAF50;
         margin-right: 8px;
@@ -93,211 +89,126 @@ selected_pair = st.selectbox(
 
 st.markdown("---")
 
+# Sync status
+st.markdown("""
+<div class="sync-note">
+    <span class="pulse-dot"></span>
+    Videos are synchronized - left video controls both players
+</div>
+""", unsafe_allow_html=True)
+
 # Get selected video paths
 original_path = VIDEO_PAIRS[selected_pair]["original"]
 mesh_path = VIDEO_PAIRS[selected_pair]["mesh"]
 
-# Create synchronized video player using custom HTML component
-# This approach works on Streamlit Cloud by embedding videos with sync JavaScript
-html_code = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        * {{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }}
+# Create two columns for videos
+col1, col2 = st.columns(2)
 
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background-color: transparent;
-            color: #fafafa;
-        }}
+with col1:
+    st.markdown('<div class="video-label">Original Video</div>', unsafe_allow_html=True)
+    st.video(original_path, start_time=0)
 
-        .container {{
-            padding: 0px;
-            max-width: 100%;
-        }}
+with col2:
+    st.markdown('<div class="video-label">Mesh Render</div>', unsafe_allow_html=True)
+    st.video(mesh_path, start_time=0)
 
-        .video-wrapper {{
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }}
+# Inject synchronization JavaScript
+# This attempts to access parent document's video elements and sync them
+sync_script = """
+<script>
+(function() {
+    console.log('Ecolang Video Sync: Initializing...');
 
-        .video-container {{
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #1e1e1e;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }}
+    function initSync() {
+        try {
+            const parentDoc = window.parent.document;
+            const videos = parentDoc.querySelectorAll('video');
 
-        .video-header {{
-            background: #262626;
-            padding: 12px 16px;
-            font-weight: 600;
-            font-size: 16px;
-            border-bottom: 2px solid #3a3a3a;
-        }}
+            if (videos.length >= 2) {
+                const video1 = videos[0];
+                const video2 = videos[1];
 
-        .video-container video {{
-            width: 100%;
-            height: auto;
-            display: block;
-            background: #000;
-        }}
+                console.log('Ecolang Video Sync: Found ' + videos.length + ' videos');
 
-        .sync-status {{
-            padding: 12px;
-            text-align: center;
-            font-size: 13px;
-            color: #888;
-            background: #1a1a1a;
-            border-radius: 8px;
-            border: 1px solid #3a3a3a;
-        }}
+                // Check if already initialized
+                if (video1.dataset.syncInitialized) {
+                    console.log('Ecolang Video Sync: Already initialized');
+                    return;
+                }
+                video1.dataset.syncInitialized = 'true';
 
-        .sync-indicator {{
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 6px;
-            background: #4CAF50;
-            animation: pulse 2s infinite;
-        }}
+                // Synchronization parameters
+                const MAX_DRIFT = 0.15;
+                let isSyncing = false;
 
-        @keyframes pulse {{
-            0%, 100% {{ opacity: 1; }}
-            50% {{ opacity: 0.5; }}
-        }}
+                // Continuous sync monitoring
+                function syncVideos() {
+                    if (!isSyncing && !video1.paused && !video2.paused) {
+                        const timeDiff = Math.abs(video2.currentTime - video1.currentTime);
 
-        @media (max-width: 768px) {{
-            .video-wrapper {{
-                flex-direction: column;
-            }}
-        }}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="sync-status">
-            <span class="sync-indicator"></span>
-            Videos are synchronized - left video controls both players
-        </div>
-        <br>
-        <div class="video-wrapper">
-            <div class="video-container">
-                <div class="video-header">Original Video</div>
-                <video id="video1" controls preload="auto">
-                    <source src="{original_path}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
+                        if (timeDiff > MAX_DRIFT) {
+                            isSyncing = true;
+                            video2.currentTime = video1.currentTime;
+                            setTimeout(() => { isSyncing = false; }, 100);
+                        }
+                    }
+                    requestAnimationFrame(syncVideos);
+                }
 
-            <div class="video-container">
-                <div class="video-header">Mesh Render</div>
-                <video id="video2" controls preload="auto">
-                    <source src="{mesh_path}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
-            </div>
-        </div>
-    </div>
+                // Event listeners for video1 (master)
+                video1.addEventListener('play', () => {
+                    console.log('Ecolang Video Sync: Play event');
+                    video2.play().catch(e => console.log('Sync play failed:', e));
+                });
 
-    <script>
-        // Get video elements
-        const video1 = document.getElementById('video1');
-        const video2 = document.getElementById('video2');
+                video1.addEventListener('pause', () => {
+                    console.log('Ecolang Video Sync: Pause event');
+                    video2.pause();
+                });
 
-        // Synchronization parameters
-        const MAX_DRIFT = 0.1; // Maximum allowed time difference (100ms)
-        let isSyncing = false;
-
-        // Function to sync video2 to video1
-        function syncVideos() {{
-            if (isSyncing) {{
-                requestAnimationFrame(syncVideos);
-                return;
-            }}
-
-            // Only sync when both videos are playing
-            if (!video1.paused && !video2.paused) {{
-                const timeDiff = Math.abs(video2.currentTime - video1.currentTime);
-
-                if (timeDiff > MAX_DRIFT) {{
-                    isSyncing = true;
+                video1.addEventListener('seeked', () => {
+                    console.log('Ecolang Video Sync: Seek event to', video1.currentTime);
                     video2.currentTime = video1.currentTime;
-                    setTimeout(() => {{ isSyncing = false; }}, 100);
-                }}
-            }}
+                });
 
-            requestAnimationFrame(syncVideos);
-        }}
+                video1.addEventListener('ratechange', () => {
+                    video2.playbackRate = video1.playbackRate;
+                });
 
-        // Synchronize play event
-        video1.addEventListener('play', () => {{
-            video2.play().catch(err => {{
-                console.log('Play sync failed:', err);
-            }});
-        }});
+                video1.addEventListener('volumechange', () => {
+                    video2.volume = video1.volume;
+                    video2.muted = video1.muted;
+                });
 
-        // Synchronize pause event
-        video1.addEventListener('pause', () => {{
-            video2.pause();
-        }});
+                // Start sync loop
+                requestAnimationFrame(syncVideos);
 
-        // Synchronize seek event
-        video1.addEventListener('seeked', () => {{
-            video2.currentTime = video1.currentTime;
-        }});
+                console.log('Ecolang Video Sync: Successfully initialized!');
+            } else {
+                console.log('Ecolang Video Sync: Waiting for videos... found ' + videos.length);
+                // Try again after a delay
+                setTimeout(initSync, 500);
+            }
+        } catch (e) {
+            console.log('Ecolang Video Sync: Error -', e.message);
+            // Try again after a delay
+            setTimeout(initSync, 500);
+        }
+    }
 
-        // Synchronize playback rate
-        video1.addEventListener('ratechange', () => {{
-            video2.playbackRate = video1.playbackRate;
-        }});
-
-        // Synchronize volume
-        video1.addEventListener('volumechange', () => {{
-            video2.volume = video1.volume;
-            video2.muted = video1.muted;
-        }});
-
-        // Start continuous sync monitoring
-        requestAnimationFrame(syncVideos);
-
-        // Handle video loading
-        video1.addEventListener('loadedmetadata', () => {{
-            console.log('Video 1 loaded successfully');
-        }});
-
-        video2.addEventListener('loadedmetadata', () => {{
-            console.log('Video 2 loaded successfully');
-        }});
-
-        // Error handling
-        video1.addEventListener('error', (e) => {{
-            console.error('Video 1 error:', video1.error);
-        }});
-
-        video2.addEventListener('error', (e) => {{
-            console.error('Video 2 error:', video2.error);
-        }});
-    </script>
-</body>
-</html>
+    // Start initialization after page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(initSync, 1000));
+    } else {
+        setTimeout(initSync, 1000);
+    }
+})();
+</script>
 """
 
-# Render the synchronized video player
-st.components.v1.html(html_code, height=700, scrolling=False)
+st.components.v1.html(sync_script, height=0)
 
-
-# Sidebar with additional info
+# Sidebar
 with st.sidebar:
     st.header("About Ecolang")
     st.markdown("""
@@ -312,8 +223,8 @@ with st.sidebar:
     # Show video file info
     import os
     if os.path.exists(original_path) and os.path.exists(mesh_path):
-        original_size = os.path.getsize(original_path) / (1024 * 1024)  # MB
-        mesh_size = os.path.getsize(mesh_path) / (1024 * 1024)  # MB
+        original_size = os.path.getsize(original_path) / (1024 * 1024)
+        mesh_size = os.path.getsize(mesh_path) / (1024 * 1024)
 
         st.markdown("**File Sizes:**")
         st.text(f"Original: {original_size:.1f} MB")

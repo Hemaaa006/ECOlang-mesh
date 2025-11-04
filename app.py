@@ -40,6 +40,14 @@ st.markdown("""
         transform-origin: top center;
     }
 
+    .stVideo video {
+        object-fit: contain !important;
+        max-height: 600px;
+        width: 100%;
+        margin: 0 auto;
+        display: block;
+    }
+
     .video-label {
         background: #262626;
         padding: 12px 16px;
@@ -50,28 +58,40 @@ st.markdown("""
         text-align: center;
     }
 
+    .colab-button-container {
+        margin-top: 40px;
+        margin-bottom: 20px;
+    }
+
     .colab-button {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
         background-color: #dc3545;
-        color: white;
+        color: white !important;
         padding: 12px 24px;
         border-radius: 8px;
-        text-decoration: none;
+        text-decoration: none !important;
         font-weight: 600;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         transition: all 0.3s ease;
-        z-index: 1000;
         display: inline-block;
+        cursor: pointer;
     }
 
     .colab-button:hover {
         background-color: #c82333;
         box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
         transform: translateY(-2px);
-        text-decoration: none;
-        color: white;
+        text-decoration: none !important;
+        color: white !important;
+    }
+
+    .colab-button:visited {
+        color: white !important;
+        text-decoration: none !important;
+    }
+
+    .colab-button:link {
+        color: white !important;
+        text-decoration: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -201,6 +221,17 @@ sync_script = """
 
 st.components.v1.html(sync_script, height=0)
 
+# Add Colab button at bottom aligned with left video
+st.markdown("""
+<div class="colab-button-container">
+    <a href="https://colab.research.google.com/drive/1GRsQs6j80eF64DSFVdzvCl8qrAIVVErI?usp=sharing"
+       target="_blank"
+       class="colab-button">
+        Online Processing
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
 # Sidebar
 with st.sidebar:
     st.header("About Ecolang")
@@ -222,12 +253,3 @@ with st.sidebar:
         st.markdown("**File Sizes:**")
         st.text(f"Original: {original_size:.1f} MB")
         st.text(f"Mesh: {mesh_size:.1f} MB")
-
-# Add Colab button at bottom left
-st.markdown("""
-<a href="https://colab.research.google.com/drive/1GRsQs6j80eF64DSFVdzvCl8qrAIVVErI?usp=sharing"
-   target="_blank"
-   class="colab-button">
-    Online Processing
-</a>
-""", unsafe_allow_html=True)

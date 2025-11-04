@@ -2,7 +2,7 @@ import streamlit as st
 
 # Page configuration
 st.set_page_config(
-    page_title="Ecolang - Video Mesh Viewer",
+    page_title="Ecolang",
     layout="wide"
 )
 
@@ -228,6 +228,6 @@ st.markdown("""
 <a href="https://colab.research.google.com/drive/1GRsQs6j80eF64DSFVdzvCl8qrAIVVErI?usp=sharing"
    target="_blank"
    class="colab-button">
-    Open in Google Colab
+    Online Processing
 </a>
 """, unsafe_allow_html=True)

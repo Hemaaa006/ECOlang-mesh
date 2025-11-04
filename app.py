@@ -36,6 +36,8 @@ st.markdown("""
     .stVideo {
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        transform: scale(0.9);
+        transform-origin: top center;
     }
 
     .video-label {
@@ -48,29 +50,28 @@ st.markdown("""
         text-align: center;
     }
 
-    .sync-note {
-        background: #1a1a1a;
-        padding: 12px;
+    .colab-button {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background-color: #dc3545;
+        color: white;
+        padding: 12px 24px;
         border-radius: 8px;
-        text-align: center;
-        margin: 20px 0;
-        border: 1px solid #3a3a3a;
-        color: #888;
-    }
-
-    .pulse-dot {
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        z-index: 1000;
         display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #4CAF50;
-        margin-right: 8px;
-        animation: pulse 2s infinite;
     }
 
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+    .colab-button:hover {
+        background-color: #c82333;
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+        transform: translateY(-2px);
+        text-decoration: none;
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -88,14 +89,6 @@ selected_pair = st.selectbox(
 )
 
 st.markdown("---")
-
-# Sync status
-st.markdown("""
-<div class="sync-note">
-    <span class="pulse-dot"></span>
-    Videos are synchronized - left video controls both players
-</div>
-""", unsafe_allow_html=True)
 
 # Get selected video paths
 original_path = VIDEO_PAIRS[selected_pair]["original"]
@@ -229,3 +222,12 @@ with st.sidebar:
         st.markdown("**File Sizes:**")
         st.text(f"Original: {original_size:.1f} MB")
         st.text(f"Mesh: {mesh_size:.1f} MB")
+
+# Add Colab button at bottom left
+st.markdown("""
+<a href="https://colab.research.google.com/drive/1GRsQs6j80eF64DSFVdzvCl8qrAIVVErI?usp=sharing"
+   target="_blank"
+   class="colab-button">
+    Open in Google Colab
+</a>
+""", unsafe_allow_html=True)

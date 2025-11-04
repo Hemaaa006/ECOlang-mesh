@@ -36,15 +36,15 @@ st.markdown("""
     .stVideo {
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        transform: scale(0.9);
-        transform-origin: top center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .stVideo video {
         object-fit: contain !important;
-        max-height: 600px;
-        width: 100%;
-        margin: 0 auto;
+        max-height: 540px;
+        width: 90%;
         display: block;
     }
 

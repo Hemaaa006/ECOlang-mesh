@@ -236,6 +236,105 @@ sync_script = """
 
 st.components.v1.html(sync_script, height=0)
 
+# Add dynamic centering script
+centering_script = """
+<script>
+(function() {
+    console.log('Ecolang Video Centering: Initializing...');
+
+    function centerVideos() {
+        try {
+            const parentDoc = window.parent.document;
+            const videos = parentDoc.querySelectorAll('video');
+
+            if (videos.length >= 2) {
+                const video1 = videos[0];
+                const video2 = videos[1];
+
+                console.log('Ecolang Centering: Found videos');
+
+                // Wait for videos to load metadata
+                Promise.all([
+                    new Promise(resolve => {
+                        if (video1.readyState >= 1) resolve();
+                        else video1.addEventListener('loadedmetadata', resolve);
+                    }),
+                    new Promise(resolve => {
+                        if (video2.readyState >= 1) resolve();
+                        else video2.addEventListener('loadedmetadata', resolve);
+                    })
+                ]).then(() => {
+                    // Get video containers
+                    const container1 = video1.closest('[data-testid="stVideo"]') || video1.closest('.stVideo');
+                    const container2 = video2.closest('[data-testid="stVideo"]') || video2.closest('.stVideo');
+
+                    if (!container1 || !container2) {
+                        console.log('Ecolang Centering: Containers not found');
+                        return;
+                    }
+
+                    // Get natural dimensions
+                    const ratio1 = video1.videoWidth / video1.videoHeight;
+                    const ratio2 = video2.videoWidth / video2.videoHeight;
+
+                    console.log('Video 1 ratio:', ratio1, 'Video 2 ratio:', ratio2);
+
+                    // Set max height
+                    const maxHeight = 540;
+
+                    // Calculate actual heights at 90% width of container
+                    const containerWidth = container1.offsetWidth * 0.9;
+                    const height1 = containerWidth / ratio1;
+                    const height2 = containerWidth / ratio2;
+
+                    console.log('Calculated heights:', height1, height2);
+
+                    // Find the maximum height
+                    const actualHeight1 = Math.min(height1, maxHeight);
+                    const actualHeight2 = Math.min(height2, maxHeight);
+
+                    // Add padding to center vertically
+                    const maxActualHeight = Math.max(actualHeight1, actualHeight2);
+                    const padding1 = (maxActualHeight - actualHeight1) / 2;
+                    const padding2 = (maxActualHeight - actualHeight2) / 2;
+
+                    console.log('Adding padding - Video1:', padding1, 'Video2:', padding2);
+
+                    // Apply padding
+                    container1.style.paddingTop = padding1 + 'px';
+                    container1.style.paddingBottom = padding1 + 'px';
+                    container2.style.paddingTop = padding2 + 'px';
+                    container2.style.paddingBottom = padding2 + 'px';
+
+                    console.log('Ecolang Centering: Applied successfully');
+                });
+            } else {
+                console.log('Ecolang Centering: Waiting for videos...');
+                setTimeout(centerVideos, 500);
+            }
+        } catch (e) {
+            console.log('Ecolang Centering: Error -', e.message);
+            setTimeout(centerVideos, 500);
+        }
+    }
+
+    // Start after page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(centerVideos, 1500));
+    } else {
+        setTimeout(centerVideos, 1500);
+    }
+
+    // Re-center on window resize
+    window.addEventListener('resize', () => {
+        setTimeout(centerVideos, 300);
+    });
+})();
+</script>
+"""
+
+st.components.v1.html(centering_script, height=0)
+
 # Add Colab button at bottom aligned with left video
 st.markdown("""
 <div class="colab-button-container">

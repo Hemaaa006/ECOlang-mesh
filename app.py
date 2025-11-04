@@ -33,24 +33,34 @@ VIDEO_PAIRS = {
 # Custom CSS
 st.markdown("""
 <style>
-    /* Video container centering */
+    /* Force column containers to center content */
+    [data-testid="column"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        flex-direction: column !important;
+    }
+
+    /* Video container styling */
     [data-testid="stVideo"],
     .stVideo {
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        width: 100% !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
     }
 
-    /* Video element styling */
+    /* Video element styling - centered with contain */
     [data-testid="stVideo"] video,
     .stVideo video {
         object-fit: contain !important;
         max-height: 540px !important;
-        width: 90% !important;
+        max-width: 90% !important;
+        width: auto !important;
+        height: auto !important;
         display: block !important;
-        margin: 0 auto !important;
     }
 
     .video-label {

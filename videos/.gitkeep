@@ -1,0 +1,4 @@
+# This file keeps the videos folder in git
+# Place your video files here with the following naming convention:
+# - original_1.mp4, original_2.mp4, ..., original_5.mp4
+# - mesh_1.mp4, mesh_2.mp4, ..., mesh_5.mp4
